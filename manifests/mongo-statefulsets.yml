@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: insightly-staging-mongo-statefulset
+  namespace: insightly-staging
+spec:
+  replicas: 1
+  serviceName: insightly-staging-mongo-service
+  selector:
+    matchLabels:
+      app: insightly-staging-mongo
+  template:
+    metadata:
+      labels:
+        app: insightly-staging-mongo
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: insightly-staging-mongo
+
+          # image: three-container-mongo
+          # imagePullPolicy: Never # Comment out the imagePullPolicy field if you are NOT running locally. Otherwise, set it to Never.
+
+          image: registry.socs.uoguelph.ca/3760w23/t1/insightly/cis3760project/mongo:staging
+          imagePullPolicy: Always
+
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: insightly-secrets
+                  key: mongo-initdb-root-username
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: insightly-secrets
+                  key: mongo-initdb-root-password
+            - name: MONGO_INITDB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: insightly-configmap
+                  key: mongo-initdb-database
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongo-persistent-storage
+              mountPath: /data/db
+      imagePullSecrets:
+        - name: regcred # TODO: replace this with your image pull secret name
+  volumeClaimTemplates:
+    - metadata:
+        name: mongo-persistent-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+# Trigger the deployment

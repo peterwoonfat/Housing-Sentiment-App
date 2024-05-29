@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: insightly-staging-frontend-ingress
+  namespace: insightly-staging
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: insightly-staging.socs.uoguelph.ca # TODO: replace this with your application name with a frontend suffix
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: insightly-staging-frontend-service
+                port:
+                  number: 80
+# Trigger the deployment
